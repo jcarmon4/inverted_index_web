@@ -2,7 +2,6 @@ var express = require('express');
 var router = express.Router();
 var redis = require('redis');
 
-// var client = redis.createClient();
 var redisClient = redis.createClient({host : 'localhost', port : 6379, db : 0});
 
 redisClient.on('ready',function() {
@@ -44,7 +43,7 @@ router.get('/redis', function (req, res, next) {
 
     redisClient.quit();
 
-    res.render('node', {message: array1});
+    res.render('index');
 });
 
 module.exports = router;
