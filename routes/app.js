@@ -16,6 +16,22 @@ router.get('/', function (req, res, next) {
     res.render('index');
 });
 
+var getIDFbyDoc = function (word) {
+    return new Promise(function (resolve, reject) {
+        redisClient.get("idf:"+word, function (err, value) {
+            if (err) {
+                reject(err);
+            } else {
+                if (value == null){
+                    resolve(0);
+                } else {
+                    resolve(value);
+                }
+            }
+        });
+    });
+};
+
 var getDocsByWord = function(word) {
     return new Promise(function (resolve, reject) {
         var docs = [];
@@ -28,7 +44,7 @@ var getDocsByWord = function(word) {
             }
         });
     });
-}
+};
 
 getKeysPromise = new Promise(function (resolve, reject) {
     var keys = [];
@@ -63,6 +79,8 @@ router.get('/keyspro', function (req, res, next) {
     }, console.err);
 });
 
+
+
 router.get('/search/:q', function (req, res, next) {
     var query = req.params.q;
     var words = query.split("+");
@@ -71,6 +89,33 @@ router.get('/search/:q', function (req, res, next) {
         words_to_search.push("word:"+word);
     });
     var word_counts_to_search = words_to_search.length;
+
+    var count_of_word_in_array = new Map();
+    words.forEach(function (word_i) {
+        var count = 0;
+        words.forEach(function (word_j) {
+            if (word_i === word_j){
+                count += 1;
+            }
+        });
+        count_of_word_in_array.set(word_i, count);
+    });
+
+    var tf_by_word = new Map();
+    words.forEach(function (word) {
+        tf_by_word.set(word, count_of_word_in_array.get(word) / words.length);
+    });
+
+    var idf_by_word = new Map();
+    words.forEach(function (word, i) {
+        getIDFbyDoc(word).then(function (idf) {
+            idf_by_word.set(word, idf);
+            console.log("idf");
+            console.dir(idf_by_word);
+        }, console.err);
+    });
+
+
     var result_counts = 0;
     var result_docs = new Set();
     words_to_search.forEach(function (word, i) {
