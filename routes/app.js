@@ -107,11 +107,18 @@ router.get('/search/:q', function (req, res, next) {
     });
 
     var idf_by_word = new Map();
+    var tfidf_by_word = new Map();
+    var num_response = 0;
     words.forEach(function (word, i) {
         getIDFbyDoc(word).then(function (idf) {
+            num_response += 1;
             idf_by_word.set(word, idf);
-            console.log("idf");
-            console.dir(idf_by_word);
+            tfidf_by_word.set(word, tf_by_word.get(word) * idf);
+
+            if (num_response === words.length){
+                console.log("TFIDF");
+                console.dir(tfidf_by_word);
+            }
         }, console.err);
     });
 
@@ -130,7 +137,7 @@ router.get('/search/:q', function (req, res, next) {
                             result_docs.add(doc);
                         });
                         if (result_counts == word_counts_to_search){
-                            console.log("Results");
+                            console.log("Docs");
                             console.dir(result_docs);
                         }
                     }, console.err);
