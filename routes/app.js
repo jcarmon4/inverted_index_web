@@ -79,7 +79,13 @@ router.get('/keyspro', function (req, res, next) {
     }, console.err);
 });
 
-
+function getMagnitude(tfidf_by_word) {
+    var sum = 0;
+    tfidf_by_word.forEach(function(value, key) {
+        sum += Math.pow(value, 2);
+    });
+    return Math.sqrt(sum);
+}
 
 router.get('/search/:q', function (req, res, next) {
     var query = req.params.q;
@@ -118,8 +124,12 @@ router.get('/search/:q', function (req, res, next) {
             if (num_response === words.length){
                 console.log("TFIDF");
                 console.dir(tfidf_by_word);
+                var magnitude = getMagnitude(tfidf_by_word);
+                console.log("Magnitude "+magnitude);
             }
-        }, console.err);
+        }).catch(function () {
+            console.log("Promise Rejected");
+        });
     });
 
 
