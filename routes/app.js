@@ -26,6 +26,38 @@ router.get('/keyspro', function (req, res, next) {
     }, console.err);
 });
 
+router.post('/doc', function (req, res, next) {
+    var query = req.body.doc;
+    var sortedDocsArray = [];
+    relatedDocumentsFromService(query).then(function (docsMap) {
+        console.dir(docsMap);
+        Object.keys(docsMap).forEach(function (key){
+            sortedDocsArray.push([key, docsMap[key]]);
+        });
+        sortedDocsArray.sort(function (a, b) {
+            return b[1] - a[1];
+        });
+        console.log("Sorted docs");
+        console.dir(sortedDocsArray);
+    }).catch(function (error) {
+        console.log("Promise relatedDocumentsFromService Rejected");
+        console.error(error);
+    });
+});
+
+var relatedDocumentsFromService = function (doc) {
+    var key = "similarity:"+doc;
+    return new Promise(function (resolve, reject) {
+        redisClient.hgetall(key, function (error, items) {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(items);
+            }
+        });
+    });
+};
+
 router.get('/search/:q', function (req, res, next) {
     var query = req.params.q;
     var words = query.split("+");
